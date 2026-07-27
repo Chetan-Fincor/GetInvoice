@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+<body>
+    <div class="page">
+        <header class="header">
+            <div class="header__content">
+                <p class="eyebrow">Internal Tool</p>
+                <h1>{{ app_title }}</h1>
+                <p class="subtitle">{{ app_description }}</p>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="panel search-panel">
+                <form id="search-form" class="search-form" action="{{ url_for('search') }}" method="post">
+                    <label for="client_codes" class="field-label">Client codes</label>
+                    <p class="field-hint">Enter one or more codes separated by commas, spaces, or new lines.</p>
+                    <textarea
+                        id="client_codes"
+                        name="client_codes"
+                        rows="6"
+                        placeholder="e.g. ACME001, BETA002&#10;GAMMA003"
+                        required
+                    >{{ client_codes_input }}</textarea>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Find &amp; open folder</button>
+                        <button type="button" id="clear-btn" class="btn btn-secondary">Clear</button>
+                    </div>
+                </form>
+            </section>
+
+            {% if error %}
+            <section class="alert alert-error" role="alert">
+                {{ error }}
+            </section>
+            {% endif %}
+
+            {% if opened_codes %}
+            <section class="alert alert-success" role="status">
+                {% if opened_codes|length == 1 %}
+                Opened folder for <strong>{{ opened_codes[0] }}</strong> in File Explorer.
+                {% else %}
+                Opened {{ opened_codes|length }} folders in File Explorer:
+                <strong>{{ opened_codes|join(', ') }}</strong>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            {% if results is not none %}
+            <section class="panel results-panel" id="results-panel">
+                <div class="results-header">
+                    <h2>Results</h2>
+                    {% if summary %}
+                    <div class="summary-cards">
+                        <div class="summary-card summary-card--total">
+                            <span class="summary-card__value">{{ summary.total_count }}</span>
+                            <span class="summary-card__label">Checked</span>
+                        </div>
+                        <div class="summary-card summary-card--found">
+                            <span class="summary-card__value">{{ summary.found_count }}</span>
+                            <span class="summary-card__label">Found</span>
+                        </div>
+                        <div class="summary-card summary-card--missing">
+                            <span class="summary-card__value">{{ summary.not_found_count }}</span>
+                            <span class="summary-card__label">Not found</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if results %}
+                <div class="results-table-wrapper">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Client code</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr class="result-row result-row--{{ 'found' if result.found else 'missing' }}">
+                                <td class="client-code">{{ result.client_code }}</td>
+                                <td>
+                                    {% if result.found and result.opened %}
+                                    <span class="status-badge status-badge--found">Found &amp; opened</span>
+                                    {% elif result.found %}
+                                    <span class="status-badge status-badge--found">Found</span>
+                                    {% else %}
+                                    <span class="status-badge status-badge--missing">Not Found</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+        </main>
+
+        <footer class="footer">
+            <p>Get Invoice v1.0</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', path='js/script.js') }}"></script>
+</body>
+</html>
